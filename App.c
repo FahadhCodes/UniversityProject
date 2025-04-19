@@ -12,6 +12,7 @@ typedef struct pnode *product;
 struct pnode
 {
     char product_name[50];
+    int price;
     product next;
 };
 
@@ -27,16 +28,17 @@ void initPlist(product_list *pl)
     pl->tail = NULL;
 }
 
-product initPnode(char pName[50])
+product initPnode(char pName[50], int price)
 {
     product ptemp = (product)malloc(sizeof(struct pnode));
     strcpy(ptemp->product_name, pName);
+    ptemp->price = price;
     ptemp->next = NULL;
     return ptemp;
 }
-void insertProduct_Rear(product_list *pl, char pName[50])
+void insertProduct_Rear(product_list *pl, char pName[50], int price)
 {
-    product ptemp = initPnode(pName);
+    product ptemp = initPnode(pName, price);
     if (pl->head == NULL)
     {
         pl->head = pl->tail = ptemp;
@@ -55,7 +57,7 @@ void pdelete(product_list *pl, char pName[50])
     product search2;
     if (pl->head == NULL)
     {
-        printf("The list is empty!!!\n");
+        printf("THE LIST IS EMPTY!!!\n");
     }
     else
     {
@@ -87,14 +89,13 @@ void pdelete(product_list *pl, char pName[50])
         }
         else
         {
-            printf("The entered Product not found!!!");
+            printf("THE ENTERED PRODUCT NOT FOUND!!!");
         }
     }
 }
 
 void pupdate(product_list *pl, char pName[50])
 {
-    printf("entered pupdate");
     int found = 0;
     product search;
     if (pl->head == NULL)
@@ -118,16 +119,74 @@ void pupdate(product_list *pl, char pName[50])
         if (found)
         {
             char Uproduct[50];
-            printf("Enter the product Name:");
+            int uprice;
+            printf("ENTER THE PRODUCT NAME(UPDATE):");
             getchar();
             scanf("%[^\n]", &Uproduct);
             strcpy(search->product_name, Uproduct);
         }
         else
         {
-            printf("The entered product not found!!!");
+            printf("THE ENTERED PRODUCT NOT FOUND!!!");
         }
     }
+}
+void pupdate_P(product_list *pl, int price)
+{
+    int found = 0;
+    product search;
+    if (pl->head == NULL)
+    {
+        printf("NO PRODUCTS!!!\n");
+    }
+    else
+    {
+        search = pl->head;
+        while (search != NULL && !found)
+        {
+            if (search->price == price)
+            {
+                found = 1;
+            }
+            else
+            {
+                search = search->next;
+            }
+        }
+        if (found)
+        {
+            int uprice;
+            printf("ENTER THE PRODUCT PRICE(UPDATE):");
+            scanf("%d", &uprice);
+            search->price = uprice;
+        }
+        else
+        {
+            printf("THE ENTERED PRODUCT NOT FOUND!!!");
+        }
+    }
+}
+int priceRecalculator(product_list *pl)
+{
+    product product;
+    int totalPrice = 0;
+    if (pl->head == NULL)
+    {
+        printf("NO PRODUCTS....!\n");
+    }
+    else
+    {
+        product = pl->head;
+        printf("RECALCULATING");
+        while (product != NULL)
+        {
+            totalPrice += product->price;
+            product = product->next;
+            printf(".");
+        }
+        printf("\n");
+    }
+    return totalPrice;
 }
 void prod_Display(product_list *pl)
 {
@@ -139,20 +198,14 @@ void prod_Display(product_list *pl)
     else
     {
         display = pl->head;
-        // printf("+-------------------------+\n");
-        // printf("|   Products              |\n");
-        // printf("+-------------------------+\n");
 
         while (display != NULL)
         {
-            printf("\n|           |                 |           |           |                         |                         | %23s |", display->product_name);
+            printf("\n|           |                 |           |           |                         |                         | %-10s| %-9d   |", display->product_name, display->price);
             display = display->next;
         }
     }
 }
-// link functions sub-list -> main-list
-
-// link functions sub-list -> main-list
 //---------------------------------------------------------------------------PRODUCT DEFF------------------------------------------------------------------
 
 int id_gen() // Used for generate ID
@@ -294,18 +347,23 @@ void search(list *l, int UID)
             char str2[100];
             strftime(str2, 100, "%d /%m /%Y |%I:%M %p", del);
             printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
-            printf("|   ID      | Customer Name   |   Gender  |   Price   |      Ordered Date       |     Delivered Date      |   Products              |\n");
+            printf("|   ID      | CUSTOMER NAME   |   GENDER  |TOTAL PRICE|      ORDERED DATE       |     DELIVERED DATE      |          BILL           |\n");
             printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
             colour(7);
             colour(14);
-            printf("| %-9d | %-15s | %-9s | %-9d | %-23s | %-23s |-------------------------|", search->u.Order_ID, search->u.name, search->u.gender, search->u.price, str1, str2);
+            printf("| %-9d | %-15s | %-9s | %-9d | %-23s | %-23s ", search->u.Order_ID, search->u.name, search->u.gender, search->u.price, str1, str2);
+            colour(16);
+            printf("   PRODUCT   ");
+            colour(64);
+            printf("    PRICE     ");
+            colour(14);
             prod_Display(&search->u.products);
             printf("\n");
             printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
         }
         else
         {
-            printf("The entered User ID not found!!!");
+            printf("THE ENTERED USER ID NOT FOUND!!!");
         }
     }
 }
@@ -315,7 +373,7 @@ void delete(list *l, int UID)
     printf("1: DELETE ENTIRE DATA\n");
     printf("2: DELETE A PRODUCT\n\n");
     int cho;
-    printf("Enter what you want to Delete (\t1\t2\t): ");
+    printf("ENTER WHAT YOU WANT TO DELETE (\t1\t2\t): ");
     scanf("%d", &cho);
 
     if (cho == 1)
@@ -325,7 +383,7 @@ void delete(list *l, int UID)
         node search2;
         if (l->head == NULL)
         {
-            printf("The list is empty!!!\n");
+            printf("THE LIST IS EMPTY!!!\n");
         }
         else
         {
@@ -357,7 +415,7 @@ void delete(list *l, int UID)
             }
             else
             {
-                printf("The entered User ID not found!!!\n");
+                printf("THE ENTERED USER ID NOT FOUND!!!\n");
             }
         }
     }
@@ -367,7 +425,7 @@ void delete(list *l, int UID)
         node search;
         if (l->head == NULL)
         {
-            printf("The list is empty!!!\n");
+            printf("THE LIST IS EMPTY!!!\n");
         }
         else
         {
@@ -386,20 +444,20 @@ void delete(list *l, int UID)
             if (found)
             {
                 char pName[50];
-                printf("Enter the product name you want to delete: ");
+                printf("ENTER THE PRODUCT NAME YOU WANT TO DELETE: ");
                 getchar();
                 scanf("%[^\n]", pName);
                 pdelete(&search->u.products, pName);
             }
             else
             {
-                printf("The entered User ID not found!!!\n");
+                printf("THE ENTERED USER ID NOT FOUND!!!\n");
             }
         }
     }
     else
     {
-        printf("Invalid choice!!!\n");
+        printf("INVALID CHOICE!!!\n");
     }
 }
 
@@ -427,15 +485,14 @@ void update(list *l, int UID)
         }
         if (found)
         {
-            int x, price, wrktime;
+            int x, wrktime, price;
             char name[50], gender[10], product[50];
             colour(7);
-            printf("Enter a following Number according to what you want to change...\n");
-            colour(82);
-            printf("1: CHANGE NAME\t2: CHANGE GENDER\t3: CHANGE ORDERED ITEMS(Enter from the beginning)\n");
+            printf("ENTER A FOLLOWING NUMBER ACCORDING TO WHAT YOU WANT TO CHANGE...\n");
             colour(13);
+            printf("1: CHANGE NAME\t2: CHANGE GENDER\t3: CHANGE ORDERED ITEMS\n");
             printf("4: CHANGE PRICE\t5: CHANGE WORK TIME PERIOD\n");
-            printf("which data do you want to be update(");
+            printf("WHICH DATA DO YOU WANT TO BE UPDATE(");
             colour(82);
             printf(" 1 ");
             colour(13);
@@ -452,44 +509,45 @@ void update(list *l, int UID)
             switch (x)
             {
             case 1:
-                printf("ENTER Customer Name: ");
+                printf("ENTER CUSTOMER NAME: ");
                 getchar();
                 scanf("%[^\n]", &name);
                 strcpy(search->u.name, name);
                 break;
             case 2:
-                printf("ENTER gender: ");
+                printf("ENTER GENDER: ");
                 getchar();
                 scanf("%[^\n]", &gender);
                 strcpy(search->u.gender, gender);
                 break;
             case 3:
-                printf("Enter the product name you want to update: ");
+                printf("ENTER PRODUCT NAME THAT YOU WANT TO UPDATE: ");
                 getchar();
                 scanf("%[^\n]", product);
                 pupdate(&search->u.products, product);
                 break;
             case 4:
-                printf("Enter price:");
+                printf("ENTER THE PRICE OF A SPECIFIC PRODUCT THAT YOU WANT TO UPDATE: ");
                 scanf("%d", &price);
-                search->u.price = price;
+                pupdate_P(&search->u.products, price);
+                search->u.price = priceRecalculator(&search->u.products);
                 break;
             case 5:
                 int hh, dd, mm;
-                printf("ENTER Work time Period: (HOUR DAY MONTH)\n                         ");
+                printf("ENTER WORK TIME PERIOD: (HOUR DAY MONTH)\n                         ");
                 scanf("%d %d %d", &hh, &dd, &mm);
                 wrktime = mm * 30 * 24 * 60 * 60 + dd * 24 * 60 * 60 + hh * 60 * 60;
                 search->u.wrktime_period = wrktime;
                 search->u.delivered_date += search->u.wrktime_period;
                 break;
             default:
-                printf("Wrong choice detected!!!\n");
+                printf("WRONG CHOICE DETECTED!!!\n");
                 break;
             }
         }
         else
         {
-            printf("The entered User ID not found!!!");
+            printf("THE ENTERED USER ID NOT FOUND!!!");
         }
     }
 }
@@ -506,7 +564,7 @@ void display(list *l)
     {
         display = l->head;
         printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
-        printf("|   ID      | Customer Name   |   Gender  |   Price   |      Ordered Date       |     Delivered Date      |   Products              |\n");
+        printf("|   ID      | CUSTOMER NAME   |   GENDER  |TOTAL PRICE|      ORDERED DATE       |     DELIVERED DATE      |          BILL           |\n");
         printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
         colour(7);
         colour(14);
@@ -518,7 +576,12 @@ void display(list *l)
             struct tm *del = localtime(&display->u.delivered_date);
             char str2[100];
             strftime(str2, 100, "%d /%m /%Y |%I:%M %p", del);
-            printf("| %-9d | %-15s | %-9s | %-9d | %-23s | %-23s |-------------------------|", display->u.Order_ID, display->u.name, display->u.gender, display->u.price, str1, str2);
+            printf("| %-9d | %-15s | %-9s | %-9d | %-23s | %-23s ", display->u.Order_ID, display->u.name, display->u.gender, display->u.price, str1, str2);
+            colour(16);
+            printf("   PRODUCT   ");
+            colour(64);
+            printf("    PRICE     ");
+            colour(14);
             prod_Display(&display->u.products);
             printf("\n");
             printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
@@ -530,11 +593,12 @@ void display(list *l)
 
 void user_inp(user *u)
 {
+    int totalPrice = 0;
     colour(10);
-    printf("ENTER Customer Name: ");
+    printf("ENTER CUSTOMER NAME: ");
     getchar();
     scanf("%49[^\n]", &u->name);
-    printf("ENTER gender: ");
+    printf("ENTER GENDER: ");
     getchar();
     scanf("%49[^\n]", &u->gender);
     initPlist(&u->products);
@@ -542,10 +606,14 @@ void user_inp(user *u)
     {
         colour(3);
         char pName[50];
-        printf("ENTER Ordered Items: ");
+        int price;
+        printf("ENTER ORDERED PRODUCT: ");
         getchar();
         scanf("%[^\n]", pName);
-        insertProduct_Rear(&u->products, pName);
+        printf("ENTER PRICE OF THE PRODUCT: ");
+        scanf("%d", &price);
+        totalPrice += price;
+        insertProduct_Rear(&u->products, pName, price);
         int s;
         printf("[1: ADD MORE PRODUCTS]   |   [0: EXIT FROM PRODUCT ENTERING (REAR) SECTION]: ");
         scanf("%d", &s);
@@ -558,11 +626,10 @@ void user_inp(user *u)
             break;
         }
     }
-    printf("ENTER Price: ");
-    scanf("%d", &u->price);
     int hh, dd, mm;
-    printf("ENTER Work time Period: (HOUR DAY MONTH)\n                         ");
+    printf("ENTER WORK TIME PERIOD: (HOUR DAY MONTH)\n                         ");
     scanf("%d %d %d", &hh, &dd, &mm);
+    u->price = totalPrice;
     u->wrktime_period = mm * 30 * 24 * 60 * 60 + dd * 24 * 60 * 60 + hh * 60 * 60;
     u->Order_ID = id_gen();
     u->ordered_date = time(NULL),
@@ -582,7 +649,7 @@ int main()
     while (1) // INSERT FRONT LOOP
     {
         char CHOICE[10];
-        printf("Enter what you want to change ");
+        printf("ENTER WHAT YOU WANT TO CHANGE ");
         colour(30);
         printf(" INSERT ");
         colour(100);
@@ -601,7 +668,7 @@ int main()
             {
                 char ADD[10];
                 colour(7);
-                printf("CHOOSE a Data Entering mehtod ");
+                printf("CHOOSE A DATA ENTERING METHOD ");
                 colour(30);
                 printf("FRONT");
                 colour(100);
@@ -609,7 +676,7 @@ int main()
                 colour(113);
                 printf("NEXT");
                 colour(7);
-                printf("(to enter data next to a paricular data)): ");
+                printf("(TO ENTER DATA NEXT TO A PARTICULAR DATA): ");
                 scanf("%s", &ADD);
                 if (strcmp(ADD, "FRONT") == 0)
                 {
@@ -662,7 +729,7 @@ int main()
                     while (1) // INSERT NEXT LOOP
                     {
                         colour(3);
-                        printf("Enter User ID to store data next to them: ");
+                        printf("ENTER USER ID TO STORE DATA NEXT TO THEM: ");
                         scanf("%d", &UID);
                         user u;
                         user_inp(&u);
@@ -709,7 +776,7 @@ int main()
             {
                 // CODE
                 colour(13);
-                printf("Enter User ID that you want to update: ");
+                printf("ENTER USER ID THAT YOU WANT TO UPDATE: ");
                 scanf("%d", &UID);
                 update(l, UID);
                 int s;
@@ -734,7 +801,7 @@ int main()
             {
                 // CODE
                 colour(12);
-                printf("Enter User ID that you want to delete: ");
+                printf("ENTER USER ID THAT YOU WANT TO DELETE: ");
                 scanf("%d", &UID);
                 delete (l, UID);
                 int s;
@@ -759,7 +826,7 @@ int main()
             {
                 // CODE
                 colour(14);
-                printf("Enter User ID that you want to find: ");
+                printf("ENTER USER ID THAT YOU WANT TO FIND: ");
                 scanf("%d", &UID);
                 search(l, UID);
                 int s;
