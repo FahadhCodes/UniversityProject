@@ -188,6 +188,24 @@ int priceRecalculator(product_list *pl)
     }
     return totalPrice;
 }
+void prod_Display_printing(product_list *pl, FILE *fptr)
+{
+    product display;
+    if (pl->head == NULL)
+    {
+        fprintf(fptr, "NO PRODUCTS....!\n");
+    }
+    else
+    {
+        display = pl->head;
+
+        while (display != NULL)
+        {
+            fprintf(fptr, "\n|           |                 |           |           |                         |                         | %-10s| %-9d   |", display->product_name, display->price);
+            display = display->next;
+        }
+    }
+}
 void prod_Display(product_list *pl)
 {
     product display;
@@ -315,6 +333,80 @@ void insertNext(list *l, user *u, int UID)
     }
 }
 
+void billPrinting(user *u, product_list *pl)
+{
+    FILE *fptr;
+    char filename[100];
+    sprintf(filename, "Customers Bills/%s_%d.txt", u->name, u->Order_ID);
+    fptr = fopen(filename, "w");
+    if (fptr == NULL)
+    {
+        printf("Customer Bills folder does not exist!!!:\n");
+    }
+    else
+    {
+        // convertor
+        struct tm *ord = localtime(&u->ordered_date);
+        char str1[100];
+        strftime(str1, 100, "%d /%m /%Y |%I:%M %p", ord);
+        struct tm *del = localtime(&u->delivered_date);
+        char str2[100];
+        strftime(str2, 100, "%d /%m /%Y |%I:%M %p", del);
+        // convertor
+        colour(6);
+        printf("+------------------------------------------+\n");
+        fprintf(fptr, "+------------------------------------------+\n");
+        printf("|                     BILL                 |\n");
+        fprintf(fptr, "|                     BILL                 |\n");
+        printf("+------------------------------------------+\n");
+        fprintf(fptr, "+------------------------------------------+\n");
+        colour(11);
+        printf("|   %-18s|   %-17d|\n", u->name, u->Order_ID);
+        fprintf(fptr, "|   %-18s|   %-17d|\n", u->name, u->Order_ID);
+        colour(13);
+        printf("+------------------------------------------+\n");
+        fprintf(fptr, "+------------------------------------------+\n");
+        printf("| ORDERED DATE   : %-24s|\n", str1);
+        fprintf(fptr, "| ORDERED DATE   : %-24s|\n", str1);
+        printf("| DELIVERED DATE : %-24s|\n", str2);
+        fprintf(fptr, "| DELIVERED DATE : %-24s|\n", str2);
+        colour(14);
+        printf("+------------------------------------------+\n");
+        fprintf(fptr, "+------------------------------------------+\n");
+        printf("|      PRODUCT        |       PRICE        |\n");
+        fprintf(fptr, "|      PRODUCT        |       PRICE        |\n");
+        printf("+------------------------------------------+\n");
+        fprintf(fptr, "+------------------------------------------+\n");
+        colour(6);
+        product printer;
+        int total = 0;
+        printer = pl->head;
+        if (pl->head == NULL)
+        {
+            printf("NO PRODUCTS!!!");
+            fprintf(fptr, "NO PRODUCTS!!!");
+        }
+        else
+        {
+            while (printer != NULL)
+            {
+                printf("|      %-15s|       %-13d|\n", printer->product_name, printer->price);
+                fprintf(fptr, "|      %-15s|       %-13d|\n", printer->product_name, printer->price);
+                total += printer->price;
+                printer = printer->next;
+            }
+        }
+        printf("+------------------------------------------+\n");
+        fprintf(fptr, "+------------------------------------------+\n");
+        printf("|      TOTAL          |       %-13d|\n", total);
+        fprintf(fptr, "|      TOTAL          |       %-13d|\n", total);
+        printf("+------------------------------------------+\n");
+        fprintf(fptr, "+------------------------------------------+\n");
+        colour(7);
+        fclose(fptr);
+    }
+}
+
 void search(list *l, int UID)
 {
     int found = 0;
@@ -360,6 +452,17 @@ void search(list *l, int UID)
             prod_Display(&search->u.products);
             printf("\n");
             printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
+            char cH;
+            printf("WOULD YOU LIKE TO PRINT BILL: (1/2): ");
+            scanf("%d", &cH);
+            if (cH == 1)
+            {
+                billPrinting(&search->u, &search->u.products);
+            }
+            else
+            {
+                printf("BILL DOES NOT PRINTED...\n");
+            }
         }
         else
         {
@@ -551,6 +654,51 @@ void update(list *l, int UID)
         }
     }
 }
+void print_Display(list *l)
+{
+    // FILE
+    FILE *db = fopen("Customers Bills/Database/database.txt", "a+");
+    if (db == NULL)
+    {
+        printf("(Customers Bills/Database/database.txt)<---MISSING");
+    }
+    else
+    // FILE
+    {
+        node display;
+
+        if (l->head == NULL)
+        {
+            fprintf(db, "NO DATA....!\n");
+        }
+        else
+        {
+            display = l->head;
+            struct tm *ord = localtime(&display->u.ordered_date);
+            char str1[100];
+            strftime(str1, 100, "%d /%m /%Y |%I:%M %p", ord);
+            struct tm *del = localtime(&display->u.delivered_date);
+            char str2[100];
+            strftime(str2, 100, "%d /%m /%Y |%I:%M %p", del);
+            fprintf(db, "------------------------------------------------------------------------------------------------------------------------------------+\n");
+            fprintf(db, "|      RECODED DATE:  %-110s|\n", str1);
+            fprintf(db, "+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
+            fprintf(db, "|   ID      | CUSTOMER NAME   |   GENDER  |TOTAL PRICE|      ORDERED DATE       |     DELIVERED DATE      |          BILL           |\n");
+            fprintf(db, "+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
+
+            while (display != NULL)
+            {
+                fprintf(db, "| %-9d | %-15s | %-9s | %-9d | %-23s | %-23s ", display->u.Order_ID, display->u.name, display->u.gender, display->u.price, str1, str2);
+                fprintf(db, "| PRODUCT   ");
+                fprintf(db, "|  PRICE      |");
+                prod_Display_printing(&display->u.products, db);
+                fprintf(db, "\n");
+                fprintf(db, "+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
+                display = display->next;
+            }
+        }
+    }
+}
 
 void display(list *l)
 {
@@ -588,6 +736,8 @@ void display(list *l)
             display = display->next;
         }
         colour(7);
+        printf("DATABASE UPDATED....\n");
+        print_Display(l);
     }
 }
 
@@ -615,7 +765,7 @@ void user_inp(user *u)
         totalPrice += price;
         insertProduct_Rear(&u->products, pName, price);
         int s;
-        printf("[1: ADD MORE PRODUCTS]   |   [0: EXIT FROM PRODUCT ENTERING (REAR) SECTION]: ");
+        printf("[1: ADD MORE PRODUCTS]   |   [0: EXIT FROM PRODUCT ENTERING SECTION]: ");
         scanf("%d", &s);
         if (s)
         {
@@ -634,6 +784,17 @@ void user_inp(user *u)
     u->Order_ID = id_gen();
     u->ordered_date = time(NULL),
     u->delivered_date = u->ordered_date + u->wrktime_period;
+    char cH;
+    printf("WOULD YOU LIKE TO PRINT BILL: (1/2): ");
+    scanf("%d", &cH);
+    if (cH == 1)
+    {
+        billPrinting(u, &u->products);
+    }
+    else
+    {
+        printf("BILL DOES NOT PRINTED...\n");
+    }
 }
 int main()
 {
