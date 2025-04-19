@@ -2,6 +2,159 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <windows.h>
+//---------------------------------------------------------------------------PRODUCT DEFF------------------------------------------------------------------
+void colour(int colour)
+{
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), colour);
+}
+typedef struct pnode *product;
+struct pnode
+{
+    char product_name[50];
+    product next;
+};
+
+typedef struct
+{
+    product head;
+    product tail;
+} product_list;
+
+void initPlist(product_list *pl)
+{
+    pl->head = NULL;
+    pl->tail = NULL;
+}
+
+product initPnode(char pName[50])
+{
+    product ptemp = (product)malloc(sizeof(struct pnode));
+    strcpy(ptemp->product_name, pName);
+    ptemp->next = NULL;
+    return ptemp;
+}
+void insertProduct_Rear(product_list *pl, char pName[50])
+{
+    product ptemp = initPnode(pName);
+    if (pl->head == NULL)
+    {
+        pl->head = pl->tail = ptemp;
+    }
+    else
+    {
+        pl->tail->next = ptemp;
+        pl->tail = ptemp;
+    }
+}
+
+void pdelete(product_list *pl, char pName[50])
+{
+    int found = 0;
+    product search1;
+    product search2;
+    if (pl->head == NULL)
+    {
+        printf("The list is empty!!!\n");
+    }
+    else
+    {
+        search1 = pl->head;
+        search2 = search1;
+        while (search1 != NULL && !found)
+        {
+            if (strcmp(search1->product_name, pName) == 0)
+            {
+                found = 1;
+            }
+            else
+            {
+                search2 = search1;
+                search1 = search1->next;
+            }
+        }
+        if (found)
+        {
+            if (search2 == search1)
+            {
+                pl->head = search1->next;
+            }
+            else
+            {
+                search2->next = search1->next;
+            }
+            free(search1);
+        }
+        else
+        {
+            printf("The entered Product not found!!!");
+        }
+    }
+}
+
+void pupdate(product_list *pl, char pName[50])
+{
+    printf("entered pupdate");
+    int found = 0;
+    product search;
+    if (pl->head == NULL)
+    {
+        printf("NO PRODUCTS!!!\n");
+    }
+    else
+    {
+        search = pl->head;
+        while (search != NULL && !found)
+        {
+            if (strcmp(search->product_name, pName) == 0)
+            {
+                found = 1;
+            }
+            else
+            {
+                search = search->next;
+            }
+        }
+        if (found)
+        {
+            char Uproduct[50];
+            printf("Enter the product Name:");
+            getchar();
+            scanf("%[^\n]", &Uproduct);
+            strcpy(search->product_name, Uproduct);
+        }
+        else
+        {
+            printf("The entered product not found!!!");
+        }
+    }
+}
+void prod_Display(product_list *pl)
+{
+    product display;
+    if (pl->head == NULL)
+    {
+        printf("NO PRODUCTS....!\n");
+    }
+    else
+    {
+        display = pl->head;
+        // printf("+-------------------------+\n");
+        // printf("|   Products              |\n");
+        // printf("+-------------------------+\n");
+
+        while (display != NULL)
+        {
+            printf("\n|           |                 |           |           |                         |                         | %23s |", display->product_name);
+            display = display->next;
+        }
+    }
+}
+// link functions sub-list -> main-list
+
+// link functions sub-list -> main-list
+//---------------------------------------------------------------------------PRODUCT DEFF------------------------------------------------------------------
+
 int id_gen() // Used for generate ID
 {
     time_t t = time(NULL);
@@ -11,7 +164,8 @@ int id_gen() // Used for generate ID
 typedef struct // define user
 {
     int Order_ID, price;
-    char name[100], gender[10], tailoreItm[1024 * 5];
+    char name[100], gender[10]; // tailoreItm[1024 * 5]
+    product_list products;
     time_t ordered_date;
     time_t delivered_date;
     int wrktime_period;
@@ -39,14 +193,7 @@ void initList(list *l)
 node initNode(user *u)
 {
     node temp = (node)malloc(sizeof(struct lnode));
-    temp->u.Order_ID = u->Order_ID;
-    strcpy(temp->u.name, u->name);
-    strcpy(temp->u.gender, u->gender);
-    strcpy(temp->u.tailoreItm, u->tailoreItm);
-    temp->u.wrktime_period = u->wrktime_period;
-    temp->u.ordered_date = u->ordered_date;
-    temp->u.delivered_date = u->delivered_date;
-    temp->u.price = u->price;
+    temp->u = *u;
     temp->next = NULL;
     return temp;
 }
@@ -137,6 +284,7 @@ void search(list *l, int UID)
                 search = search->next;
             }
         }
+        colour(96);
         if (found)
         {
             struct tm *ord = localtime(&search->u.ordered_date);
@@ -145,11 +293,15 @@ void search(list *l, int UID)
             struct tm *del = localtime(&search->u.delivered_date);
             char str2[100];
             strftime(str2, 100, "%d /%m /%Y |%I:%M %p", del);
-            printf("+-----------+-----------------+-----------+-------------------------+-----------+-------------------------+-------------------------+\n");
-            printf("|   ID      | Customer Name   |   Gender  |   Products              |   Price   |      Ordered Date       |     Delivered Date      |\n");
-            printf("+-----------+-----------------+-----------+-------------------------+-----------+-------------------------+-------------------------+\n");
-            printf("| %-9d | %-15s | %-9s | %-23s | %-9d | %-23s | %-23s |\n", search->u.Order_ID, search->u.name, search->u.gender, search->u.tailoreItm, search->u.price, str1, str2);
-            printf("+-----------+-----------------+-----------+-------------------------+-----------+-------------------------+-------------------------+\n");
+            printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
+            printf("|   ID      | Customer Name   |   Gender  |   Price   |      Ordered Date       |     Delivered Date      |   Products              |\n");
+            printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
+            colour(7);
+            colour(14);
+            printf("| %-9d | %-15s | %-9s | %-9d | %-23s | %-23s |-------------------------|", search->u.Order_ID, search->u.name, search->u.gender, search->u.price, str1, str2);
+            prod_Display(&search->u.products);
+            printf("\n");
+            printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
         }
         else
         {
@@ -160,45 +312,94 @@ void search(list *l, int UID)
 
 void delete(list *l, int UID)
 {
-    int found = 0;
-    node search1;
-    node search2;
-    if (l->head == NULL)
+    printf("1: DELETE ENTIRE DATA\n");
+    printf("2: DELETE A PRODUCT\n\n");
+    int cho;
+    printf("Enter what you want to Delete (\t1\t2\t): ");
+    scanf("%d", &cho);
+
+    if (cho == 1)
     {
-        printf("The list is empty!!!\n");
-    }
-    else
-    {
-        search1 = l->head;
-        search2 = search1;
-        while (search1 != NULL && !found)
+        int found = 0;
+        node search1;
+        node search2;
+        if (l->head == NULL)
         {
-            if (search1->u.Order_ID == UID)
-            {
-                found = 1;
-            }
-            else
-            {
-                search2 = search1;
-                search1 = search1->next;
-            }
-        }
-        if (found)
-        {
-            if (search2 == search1)
-            {
-                l->head = search1->next;
-            }
-            else
-            {
-                search2->next = search1->next;
-            }
-            free(search1);
+            printf("The list is empty!!!\n");
         }
         else
         {
-            printf("The entered User ID not found!!!");
+            search1 = l->head;
+            search2 = search1;
+            while (search1 != NULL && !found)
+            {
+                if (search1->u.Order_ID == UID)
+                {
+                    found = 1;
+                }
+                else
+                {
+                    search2 = search1;
+                    search1 = search1->next;
+                }
+            }
+            if (found)
+            {
+                if (search2 == search1)
+                {
+                    l->head = search1->next;
+                }
+                else
+                {
+                    search2->next = search1->next;
+                }
+                free(search1);
+            }
+            else
+            {
+                printf("The entered User ID not found!!!\n");
+            }
         }
+    }
+    else if (cho == 2)
+    {
+        int found = 0;
+        node search;
+        if (l->head == NULL)
+        {
+            printf("The list is empty!!!\n");
+        }
+        else
+        {
+            search = l->head;
+            while (search != NULL && !found)
+            {
+                if (search->u.Order_ID == UID)
+                {
+                    found = 1;
+                }
+                else
+                {
+                    search = search->next;
+                }
+            }
+            if (found)
+            {
+                char pName[50];
+                printf("Enter the product name you want to delete: ");
+                getchar();
+                scanf("%[^\n]", pName);
+                pdelete(&search->u.products, pName);
+            }
+            else
+            {
+                printf("The entered User ID not found!!!\n");
+            }
+        }
+    }
+    else
+    {
+        printf("Invalid choice!!!\n");
     }
 }
 
@@ -227,10 +428,26 @@ void update(list *l, int UID)
         if (found)
         {
             int x, price, wrktime;
-            char name[50], gender[10], product[5 * 1024];
+            char name[50], gender[10], product[50];
+            colour(7);
             printf("Enter a following Number according to what you want to change...\n");
-            printf("1: CHANGE NAME\t2: CHANGE GENDER\t3: CHANGE ORDERED ITEMS(Enter from the beginning)\n4: CHANGE PRICE\t5: CHANGE WORK TIME PERIOD\n");
-            printf("which data do you want to be update(\t1\t2\t3\t4\t5): ");
+            colour(82);
+            printf("1: CHANGE NAME\t2: CHANGE GENDER\t3: CHANGE ORDERED ITEMS(Enter from the beginning)\n");
+            colour(13);
+            printf("4: CHANGE PRICE\t5: CHANGE WORK TIME PERIOD\n");
+            printf("which data do you want to be update(");
+            colour(82);
+            printf(" 1 ");
+            colour(13);
+            printf(" 2 ");
+            colour(82);
+            printf(" 3 ");
+            colour(13);
+            printf(" 4 ");
+            colour(82);
+            printf(" 5 ");
+            colour(13);
+            printf(" ): ");
             scanf("%d", &x);
             switch (x)
             {
@@ -247,10 +464,10 @@ void update(list *l, int UID)
                 strcpy(search->u.gender, gender);
                 break;
             case 3:
-                printf("Enter ordered Items (Again from the beginning):");
+                printf("Enter the product name you want to update: ");
                 getchar();
-                scanf("%[^\n]", &product);
-                strcpy(search->u.tailoreItm, product);
+                scanf("%[^\n]", product);
+                pupdate(&search->u.products, product);
                 break;
             case 4:
                 printf("Enter price:");
@@ -280,6 +497,7 @@ void update(list *l, int UID)
 void display(list *l)
 {
     node display;
+    colour(96);
     if (l->head == NULL)
     {
         printf("NO DATA....!\n");
@@ -287,10 +505,11 @@ void display(list *l)
     else
     {
         display = l->head;
-        printf("+-----------+-----------------+-----------+-------------------------+-----------+-------------------------+-------------------------+\n");
-        printf("|   ID      | Customer Name   |   Gender  |   Products              |   Price   |      Ordered Date       |     Delivered Date      |\n");
-        printf("+-----------+-----------------+-----------+-------------------------+-----------+-------------------------+-------------------------+\n");
-
+        printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
+        printf("|   ID      | Customer Name   |   Gender  |   Price   |      Ordered Date       |     Delivered Date      |   Products              |\n");
+        printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
+        colour(7);
+        colour(14);
         while (display != NULL)
         {
             struct tm *ord = localtime(&display->u.ordered_date);
@@ -299,23 +518,46 @@ void display(list *l)
             struct tm *del = localtime(&display->u.delivered_date);
             char str2[100];
             strftime(str2, 100, "%d /%m /%Y |%I:%M %p", del);
-            printf("| %-9d | %-15s | %-9s | %-23s | %-9d | %-23s | %-23s |\n", display->u.Order_ID, display->u.name, display->u.gender, display->u.tailoreItm, display->u.price, str1, str2);
-            printf("+-----------+-----------------+-----------+-------------------------+-----------+-------------------------+-------------------------+\n");
+            printf("| %-9d | %-15s | %-9s | %-9d | %-23s | %-23s |-------------------------|", display->u.Order_ID, display->u.name, display->u.gender, display->u.price, str1, str2);
+            prod_Display(&display->u.products);
+            printf("\n");
+            printf("+-----------+-----------------+-----------+-----------+-------------------------+-------------------------+-------------------------+\n");
             display = display->next;
         }
+        colour(7);
     }
 }
+
 void user_inp(user *u)
 {
+    colour(10);
     printf("ENTER Customer Name: ");
     getchar();
     scanf("%49[^\n]", &u->name);
     printf("ENTER gender: ");
     getchar();
     scanf("%49[^\n]", &u->gender);
-    printf("ENTER Ordered Items: ");
-    getchar();
-    scanf("%[^\n]", &u->tailoreItm);
+    initPlist(&u->products);
+    while (1) // INSERT REAR LOOP
+    {
+        colour(3);
+        char pName[50];
+        printf("ENTER Ordered Items: ");
+        getchar();
+        scanf("%[^\n]", pName);
+        insertProduct_Rear(&u->products, pName);
+        int s;
+        printf("[1: ADD MORE PRODUCTS]   |   [0: EXIT FROM PRODUCT ENTERING (REAR) SECTION]: ");
+        scanf("%d", &s);
+        if (s)
+        {
+            printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
+        }
+        else
+        {
+            break;
+        }
+    }
     printf("ENTER Price: ");
     scanf("%d", &u->price);
     int hh, dd, mm;
@@ -331,26 +573,49 @@ int main()
     list *l = (list *)malloc(sizeof(list));
     int UID;
     initList(l);
+    colour(350);
     printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
     printf("|                                                              MENU                                                                 |\n");
     printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
     printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
+    colour(7);
     while (1) // INSERT FRONT LOOP
     {
         char CHOICE[10];
-        printf("Enter what you want to change (INSERT\tUPDATE\tDELETE\tSEARCH\tDISPLAY): ");
+        printf("Enter what you want to change ");
+        colour(30);
+        printf(" INSERT ");
+        colour(100);
+        printf(" UPDATE ");
+        colour(334);
+        printf(" DELETE ");
+        colour(288);
+        printf(" SEARCH ");
+        colour(113);
+        printf(" DISPLAY :");
+        colour(7);
         scanf("%s", &CHOICE);
         if (strcmp(CHOICE, "INSERT") == 0)
         {
             while (1) // INSERT LOOP
             {
                 char ADD[10];
-                printf("CHOOSE a Data Entering mehtod (FRONT\tREAR\tNEXT (to enter data next to a paricular data)): ");
+                colour(7);
+                printf("CHOOSE a Data Entering mehtod ");
+                colour(30);
+                printf("FRONT");
+                colour(100);
+                printf("REAR");
+                colour(113);
+                printf("NEXT");
+                colour(7);
+                printf("(to enter data next to a paricular data)): ");
                 scanf("%s", &ADD);
                 if (strcmp(ADD, "FRONT") == 0)
                 {
                     while (1) // INSERT FRONT LOOP
                     {
+                        colour(11);
                         user u;
                         user_inp(&u);
                         inserFront(l, &u);
@@ -359,6 +624,7 @@ int main()
                         scanf("%d", &s);
                         if (s)
                         {
+                            colour(6);
                             printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
                         }
                         else
@@ -372,6 +638,7 @@ int main()
                 {
                     while (1) // INSERT REAR LOOP
                     {
+                        colour(12);
                         user u;
                         user_inp(&u);
                         insertRear(l, &u);
@@ -380,6 +647,7 @@ int main()
                         scanf("%d", &s);
                         if (s)
                         {
+                            colour(6);
                             printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
                         }
                         else
@@ -393,6 +661,7 @@ int main()
                 {
                     while (1) // INSERT NEXT LOOP
                     {
+                        colour(3);
                         printf("Enter User ID to store data next to them: ");
                         scanf("%d", &UID);
                         user u;
@@ -403,6 +672,7 @@ int main()
                         scanf("%d", &s);
                         if (s)
                         {
+                            colour(6);
                             printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
                         }
                         else
@@ -419,6 +689,7 @@ int main()
                 int s;
                 printf("[1: ADD MORE DATA USING OTHER DATA ENTERING METHOD]   |   [0: EXIT DATA ENTERING]: ");
                 scanf("%d", &s);
+                colour(13);
                 if (s)
                 {
                     printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
@@ -429,6 +700,7 @@ int main()
                 {
                     break;
                 }
+                colour(7);
             }
         }
         else if (strcmp(CHOICE, "UPDATE") == 0)
@@ -436,14 +708,16 @@ int main()
             while (1) // UPDATE LOOP
             {
                 // CODE
+                colour(13);
                 printf("Enter User ID that you want to update: ");
                 scanf("%d", &UID);
                 update(l, UID);
                 int s;
-                printf("[1: UPDATE MORE DATA]   |   [0: EXIT FROM UPDATING]: \n");
+                printf("[1: UPDATE MORE DATA]   |   [0: EXIT FROM UPDATING]: ");
                 scanf("%d", &s);
                 if (s)
                 {
+                    colour(10);
                     printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
                     printf("+.............................................................UPDATING..............................................................+\n");
                 }
@@ -456,17 +730,19 @@ int main()
         }
         else if (strcmp(CHOICE, "DELETE") == 0)
         {
-            while (1) // UPDATE LOOP
+            while (1) // DELETE LOOP
             {
                 // CODE
+                colour(12);
                 printf("Enter User ID that you want to delete: ");
                 scanf("%d", &UID);
                 delete (l, UID);
                 int s;
-                printf("[1: DELETE MORE DATA]   |   [0: EXIT FROM DELETE]: \n");
+                printf("[1: DELETE MORE DATA]   |   [0: EXIT FROM DELETE]: ");
                 scanf("%d", &s);
                 if (s)
                 {
+                    colour(10);
                     printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
                     printf("+.............................................................DELETING..............................................................+\n");
                 }
@@ -482,14 +758,16 @@ int main()
             while (1) // SEARCH LOOP
             {
                 // CODE
+                colour(14);
                 printf("Enter User ID that you want to find: ");
                 scanf("%d", &UID);
                 search(l, UID);
                 int s;
-                printf("[1: SEARCH AGAIN]   |   [0: EXIT FROM SEARCH]: \n");
+                printf("[1: SEARCH AGAIN]   |   [0: EXIT FROM SEARCH]: ");
                 scanf("%d", &s);
                 if (s)
                 {
+                    colour(6);
                     printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
                     printf("+.............................................................SEARCHING.............................................................+\n");
                 }
@@ -505,10 +783,11 @@ int main()
             {
                 display(l);
                 int s;
-                printf("[1: DISPLAY AGAIN]   |   [0: EXIT FROM DISPLAYING]: \n");
+                printf("[1: DISPLAY AGAIN]   |   [0: EXIT FROM DISPLAYING]: ");
                 scanf("%d", &s);
                 if (s)
                 {
+                    colour(6);
                     printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
                     printf("+........................................................DISPLAYING.........................................................+\n");
                 }
@@ -523,12 +802,14 @@ int main()
             while (1) // DEFAULT LOOP
             {
                 // CODE
+                colour(4);
                 printf("INCORRECT CHOICE!!!");
                 int s;
-                printf("[1: TRY AGAIN]   |   [0: EXIT TO MAIN MENU]: \n");
+                printf("[1: TRY AGAIN]   |   [0: EXIT TO MAIN MENU]: ");
                 scanf("%d", &s);
                 if (s)
                 {
+                    colour(6);
                     printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
                     printf("+...................................................................................................................................+\n");
                 }
@@ -540,8 +821,10 @@ int main()
         }
 
         int s;
-        printf("[1: EDIT ENTERED DATA]   |   [0: EXIT]: \n");
+        colour(7);
+        printf("[1: EDIT ENTERED DATA]   |   [0: EXIT]: ");
         scanf("%d", &s);
+        colour(13);
         if (s)
         {
             printf("+-----------------------------------------------------------------------------------------------------------------------------------+\n");
@@ -552,6 +835,7 @@ int main()
         {
             break;
         }
+        colour(7);
     }
     getchar();
     return 0;
